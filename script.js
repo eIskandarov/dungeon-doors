@@ -22,7 +22,6 @@ class SpookyGame {
     this.activePlayerIndex = 0;
     this.isBusy = false;
 
-    // Select DOM elements
     this.scoreEls = document.querySelectorAll(".scoreboard__score");
     this.playerEls = document.querySelectorAll(".scoreboard__player");
     this.doorEls = document.querySelectorAll(".door");
@@ -31,8 +30,10 @@ class SpookyGame {
     this.modalYes = document.querySelector(".modal__button--confirm");
     this.modalNo = document.querySelector(".modal__button--cancel");
     this.resetBtn = document.querySelector(".game__reset");
+    this.gameContainer = document.querySelector(".game");
 
-    // Bind events
+    this.doorResults = [];
+
     this.doorEls.forEach((door, index) =>
       door.addEventListener("click", () => this.handleDoorClick(index)),
     );
@@ -43,6 +44,7 @@ class SpookyGame {
     );
 
     this.updateUI();
+    this.generateDoorResults();
   }
 
   get activePlayer() {
@@ -52,35 +54,48 @@ class SpookyGame {
   handleDoorClick(index) {
     if (this.isBusy) return;
     this.isBusy = true;
-
     const door = this.doorEls[index];
-    this.openDoorAnimation(door);
+
+    this.lockOtherDoors(index);
+    this.animateDoorOpen(door);
 
     setTimeout(() => {
-      const result = this.randomDoorResult();
+      this.revealResult(door, index);
+    }, config.revealDelay);
+  }
 
-      // Show result on door (could use icons or text later)
+  revealResult(door, index) {
+    const result = this.doorResults[index];
+    if (result.type === "points") {
       door.textContent = result.label;
-      door.classList.add("door--opened");
-
+      this.activePlayer.score += result.value;
+      this.updateUI();
       this.playSound(result.sound);
 
-      if (result.type === "points") {
-        this.activePlayer.score += result.value;
-        this.updateUI();
-
-        if (this.activePlayer.score >= config.scoreToWin) {
-          this.showModal(`${this.activePlayer.name} won the game!`);
-        } else {
-          this.resetDoors(); // Refresh location if points found
-        }
+      if (this.activePlayer.score >= config.scoreToWin) {
+        this.showModal(`${this.activePlayer.name} won the game!`);
       } else {
-        // spooky item found, switch player
-        this.switchPlayer();
+        this.resetDoors();
+        this.generateDoorResults();
       }
-
       this.isBusy = false;
-    }, config.revealDelay);
+    } else {
+      door.classList.add(
+        "door--monster",
+        `door--${result.label.toLowerCase()}`,
+      );
+      this.playSound(result.sound);
+      setTimeout(() => {
+        this.switchPlayer();
+        this.showModal(`${this.activePlayer.name} turn`, true);
+      }, 1000);
+    }
+  }
+
+  generateDoorResults() {
+    this.doorResults = Array.from({ length: this.doorEls.length }, () =>
+      this.randomDoorResult(),
+    );
   }
 
   randomDoorResult() {
@@ -106,17 +121,29 @@ class SpookyGame {
         ];
       return {
         type: "spooky",
-        label: spooky.toUpperCase(),
+        label: spooky,
         sound: config.sounds.spooky,
       };
     }
   }
 
-  openDoorAnimation(door) {
-    // Placeholder for door animation
+  animateDoorOpen(door) {
     door.textContent = "";
     door.classList.add("door--animating");
     this.playSound(config.sounds.doorOpen);
+  }
+
+  lockOtherDoors(activeIndex) {
+    this.doorEls.forEach((door, index) => {
+      if (index !== activeIndex) {
+        door.classList.add("door--locked");
+      }
+    });
+  }
+
+  unlockAllDoors() {
+    this.doorEls.forEach((door) => door.classList.remove("door--locked"));
+    this.isBusy = false;
   }
 
   switchPlayer() {
@@ -127,7 +154,13 @@ class SpookyGame {
   resetDoors() {
     this.doorEls.forEach((door) => {
       door.textContent = "";
-      door.classList.remove("door--opened", "door--animating");
+      door.classList.remove(
+        "door--opened",
+        "door--animating",
+        "door--locked",
+        "door--monster",
+        ...config.spookyEntities.map((m) => `door--${m}`),
+      );
     });
   }
 
@@ -141,13 +174,21 @@ class SpookyGame {
     });
   }
 
-  showModal(message) {
+  showModal(message, isTurn = false) {
     this.modalMessage.textContent = message;
     this.modal.classList.remove("hidden");
+    if (isTurn) {
+      this.modalYes.textContent = "Go";
+      this.modalNo.classList.add("hidden");
+    } else {
+      this.modalYes.textContent = "Yes";
+      this.modalNo.classList.remove("hidden");
+    }
   }
 
   hideModal() {
     this.modal.classList.add("hidden");
+    this.unlockAllDoors();
   }
 
   startNewGame() {
@@ -156,18 +197,15 @@ class SpookyGame {
     this.resetDoors();
     this.updateUI();
     this.hideModal();
+    this.generateDoorResults();
   }
 
   playSound(filename) {
-    // Placeholder - load actual audio later
     const audio = new Audio(`./assets/${filename}`);
-    audio.play().catch(() => {
-      // Avoid console errors for missing sounds
-    });
+    audio.play().catch(() => { });
   }
 }
 
-// ==== INIT ====
 window.addEventListener("DOMContentLoaded", () => {
   new SpookyGame();
 });
