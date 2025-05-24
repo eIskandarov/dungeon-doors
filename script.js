@@ -99,32 +99,39 @@ class SpookyGame {
   }
 
   randomDoorResult() {
+    const PROB_POINTS_50 = 0.4;
+    const PROB_POINTS_100 = 0.7; // 0.7 - 0.4 = 30% chance
+
     const rand = Math.random();
-    if (rand < 0.4) {
+
+    if (rand < PROB_POINTS_50) {
       return {
         type: "points",
         value: 50,
         label: "+50",
         sound: config.sounds.smallReward,
       };
-    } else if (rand < 0.7) {
+    }
+
+    if (rand < PROB_POINTS_100) {
       return {
         type: "points",
         value: 100,
         label: "+100",
         sound: config.sounds.bigReward,
       };
-    } else {
-      const spooky =
-        config.spookyEntities[
-        Math.floor(Math.random() * config.spookyEntities.length)
-        ];
-      return {
-        type: "spooky",
-        label: spooky,
-        sound: config.sounds.spooky,
-      };
     }
+
+    // Only spooky remains (~30% chance)
+    const spookyEntities = config.spookyEntities;
+    const spooky =
+      spookyEntities[Math.floor(Math.random() * spookyEntities.length)];
+
+    return {
+      type: "spooky",
+      label: spooky,
+      sound: config.sounds.spooky,
+    };
   }
 
   animateDoorOpen(door) {
