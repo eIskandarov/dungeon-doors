@@ -1,121 +1,173 @@
-// ======= CONFIGURABLE VARIABLES =======
-const pointOptions = [50, 100];
-const spookyEntities = ["ghost", "zombie", "vampire", "skeleton"];
-const winScore = 1000;
+// ==== CONFIGURATION ====
+const config = {
+  scoreToWin: 1000,
+  pointValues: [50, 100],
+  spookyEntities: ["ghost", "zombie", "skeleton", "vampire"],
+  sounds: {
+    doorOpen: "sound-door.mp3",
+    smallReward: "sound-50.mp3",
+    bigReward: "sound-100.mp3",
+    spooky: "sound-spooky.mp3",
+  },
+  revealDelay: 1000, // ms before showing door result
+};
 
-// ======= GAME CLASSES & STATE =======
-class Player {
-  constructor(name) {
-    this.name = name;
-    this.score = 0;
-  }
-
-  addPoints(points) {
-    this.score += points;
-  }
-}
-
-class Game {
+// ==== GAME CLASS ====
+class SpookyGame {
   constructor() {
-    this.players = [new Player("P1"), new Player("P2")];
-    this.currentPlayerIndex = 0;
-    this.doorOutcomes = [];
-    this.init();
+    this.players = [
+      { name: "P1", score: 0 },
+      { name: "P2", score: 0 },
+    ];
+    this.activePlayerIndex = 0;
+    this.isBusy = false;
+
+    // Select DOM elements
+    this.scoreEls = document.querySelectorAll(".scoreboard__score");
+    this.playerEls = document.querySelectorAll(".scoreboard__player");
+    this.doorEls = document.querySelectorAll(".door");
+    this.modal = document.querySelector(".game__modal");
+    this.modalMessage = document.querySelector(".modal__message");
+    this.modalYes = document.querySelector(".modal__button--confirm");
+    this.modalNo = document.querySelector(".modal__button--cancel");
+    this.resetBtn = document.querySelector(".game__reset");
+
+    // Bind events
+    this.doorEls.forEach((door, index) =>
+      door.addEventListener("click", () => this.handleDoorClick(index)),
+    );
+    this.modalYes.addEventListener("click", () => this.startNewGame());
+    this.modalNo.addEventListener("click", () => this.hideModal());
+    this.resetBtn.addEventListener("click", () =>
+      this.showModal("Would you like to start a new game?"),
+    );
+
+    this.updateUI();
   }
 
-  init() {
-    this.assignRandomOutcomes();
-    this.updateScores();
-    this.setActivePlayer();
-    this.attachEventListeners();
+  get activePlayer() {
+    return this.players[this.activePlayerIndex];
   }
 
-  assignRandomOutcomes() {
-    this.doorOutcomes = Array.from({ length: 3 }, () => {
-      const isSpooky = Math.random() < 0.33;
-      return isSpooky
-        ? spookyEntities[Math.floor(Math.random() * spookyEntities.length)]
-        : pointOptions[Math.floor(Math.random() * pointOptions.length)];
-    });
-  }
+  handleDoorClick(index) {
+    if (this.isBusy) return;
+    this.isBusy = true;
 
-  updateScores() {
-    document.getElementById("player1").textContent =
-      `P1: ${this.players[0].score}`;
-    document.getElementById("player2").textContent =
-      `P2: ${this.players[1].score}`;
-  }
+    const door = this.doorEls[index];
+    this.openDoorAnimation(door);
 
-  setActivePlayer() {
-    document.getElementById("player1").classList.remove("active");
-    document.getElementById("player2").classList.remove("active");
-    document
-      .getElementById(`player${this.currentPlayerIndex + 1}`)
-      .classList.add("active");
-  }
-
-  nextTurn() {
-    this.currentPlayerIndex = 1 - this.currentPlayerIndex;
-    this.setActivePlayer();
-  }
-
-  openDoor(doorIndex) {
-    const result = this.doorOutcomes[doorIndex];
-
-    // Reveal logic (add delay or animation here)
     setTimeout(() => {
-      if (typeof result === "number") {
-        this.players[this.currentPlayerIndex].addPoints(result);
-        this.updateScores();
+      const result = this.randomDoorResult();
 
-        if (this.players[this.currentPlayerIndex].score >= winScore) {
-          this.showModal(
-            `${this.players[this.currentPlayerIndex].name} won the game!`,
-          );
-          return;
+      // Show result on door (could use icons or text later)
+      door.textContent = result.label;
+      door.classList.add("door--opened");
+
+      this.playSound(result.sound);
+
+      if (result.type === "points") {
+        this.activePlayer.score += result.value;
+        this.updateUI();
+
+        if (this.activePlayer.score >= config.scoreToWin) {
+          this.showModal(`${this.activePlayer.name} won the game!`);
+        } else {
+          this.resetDoors(); // Refresh location if points found
         }
-
-        this.assignRandomOutcomes(); // refresh doors
       } else {
-        // Spooky! Next player's turn
-        this.nextTurn();
+        // spooky item found, switch player
+        this.switchPlayer();
       }
-    }, 1000); // simulate delay
+
+      this.isBusy = false;
+    }, config.revealDelay);
   }
 
-  attachEventListeners() {
-    document.querySelectorAll(".door").forEach((door) => {
-      door.addEventListener("click", () => {
-        const index = parseInt(door.dataset.door);
-        this.openDoor(index);
-      });
-    });
+  randomDoorResult() {
+    const rand = Math.random();
+    if (rand < 0.4) {
+      return {
+        type: "points",
+        value: 50,
+        label: "+50",
+        sound: config.sounds.smallReward,
+      };
+    } else if (rand < 0.7) {
+      return {
+        type: "points",
+        value: 100,
+        label: "+100",
+        sound: config.sounds.bigReward,
+      };
+    } else {
+      const spooky =
+        config.spookyEntities[
+        Math.floor(Math.random() * config.spookyEntities.length)
+        ];
+      return {
+        type: "spooky",
+        label: spooky.toUpperCase(),
+        sound: config.sounds.spooky,
+      };
+    }
+  }
 
-    document.getElementById("restartBtn").addEventListener("click", () => {
-      this.showModal("Would you like to start a new game?", true);
-    });
+  openDoorAnimation(door) {
+    // Placeholder for door animation
+    door.textContent = "";
+    door.classList.add("door--animating");
+    this.playSound(config.sounds.doorOpen);
+  }
 
-    document.getElementById("modal-action").addEventListener("click", () => {
-      this.resetGame();
+  switchPlayer() {
+    this.activePlayerIndex = (this.activePlayerIndex + 1) % 2;
+    this.updateUI();
+  }
+
+  resetDoors() {
+    this.doorEls.forEach((door) => {
+      door.textContent = "";
+      door.classList.remove("door--opened", "door--animating");
     });
   }
 
-  showModal(message, confirmRestart = false) {
-    document.getElementById("modal-message").textContent = message;
-    document.getElementById("modal-action").textContent = confirmRestart
-      ? "Yes"
-      : "Start a New Game";
-    document.getElementById("modal").classList.remove("hidden");
+  updateUI() {
+    this.players.forEach((player, index) => {
+      this.scoreEls[index].textContent = player.score;
+      this.playerEls[index].classList.toggle(
+        "scoreboard__player--active",
+        index === this.activePlayerIndex,
+      );
+    });
   }
 
-  resetGame() {
+  showModal(message) {
+    this.modalMessage.textContent = message;
+    this.modal.classList.remove("hidden");
+  }
+
+  hideModal() {
+    this.modal.classList.add("hidden");
+  }
+
+  startNewGame() {
     this.players.forEach((player) => (player.score = 0));
-    this.currentPlayerIndex = 0;
-    this.assignRandomOutcomes();
-    this.updateScores();
-    this.setActivePlayer();
-    document.getElementById("modal").classList.add("hidden");
+    this.activePlayerIndex = 0;
+    this.resetDoors();
+    this.updateUI();
+    this.hideModal();
+  }
+
+  playSound(filename) {
+    // Placeholder - load actual audio later
+    const audio = new Audio(`./assets/${filename}`);
+    audio.play().catch(() => {
+      // Avoid console errors for missing sounds
+    });
   }
 }
 
-const game = new Game();
+// ==== INIT ====
+window.addEventListener("DOMContentLoaded", () => {
+  new SpookyGame();
+});
