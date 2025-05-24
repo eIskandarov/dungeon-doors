@@ -66,30 +66,53 @@ class SpookyGame {
 
   revealResult(door, index) {
     const result = this.doorResults[index];
-    if (result.type === "points") {
-      door.textContent = result.label;
-      this.activePlayer.score += result.value;
-      this.updateUI();
-      this.playSound(result.sound);
+    const { type } = result;
 
-      if (this.activePlayer.score >= config.scoreToWin) {
-        this.showModal(`${this.activePlayer.name} won the game!`);
-      } else {
-        this.resetDoors();
-        this.generateDoorResults();
-      }
-      this.isBusy = false;
-    } else {
-      door.classList.add(
-        "door--monster",
-        `door--${result.label.toLowerCase()}`,
-      );
-      this.playSound(result.sound);
-      setTimeout(() => {
-        this.switchPlayer();
-        this.showModal(`${this.activePlayer.name} turn`, true);
-      }, 1000);
+    // Guard: If no result, exit early
+    if (!result) return;
+
+    // Strategy pattern: Dispatch to the right handler
+    const handlers = {
+      points: () => this.handlePointsReward(door, result),
+      spooky: () => this.handleSpookyEvent(door, result),
+    };
+
+    // Execute the handler (or default if type is invalid)
+    const handler =
+      handlers[type] || (() => console.error("Unknown result type"));
+    handler();
+
+    this.isBusy = false; // Always mark as not busy
+  }
+
+  // --- Extracted Functions ---
+  handlePointsReward(door, result) {
+    const { label, value, sound } = result;
+    door.textContent = label;
+    this.activePlayer.score += value;
+    this.updateUI();
+    this.playSound(sound);
+
+    // Early exit if player won
+    if (this.activePlayer.score >= config.scoreToWin) {
+      this.showModal(`${this.activePlayer.name} won the game!`);
+      return;
     }
+
+    // Otherwise, reset doors
+    this.resetDoors();
+    this.generateDoorResults();
+  }
+
+  handleSpookyEvent(door, result) {
+    const { label, sound } = result;
+    door.classList.add("door--monster", `door--${label.toLowerCase()}`);
+    this.playSound(sound);
+
+    setTimeout(() => {
+      this.switchPlayer();
+      this.showModal(`${this.activePlayer.name}'s turn`, true);
+    }, 1000);
   }
 
   generateDoorResults() {
