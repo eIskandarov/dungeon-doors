@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Guess the Door</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <h1 class="visually-hidden">Dungeon game</h1>
+  <div id="game-container">
+    <div class="scoreboard">
+      <span id="player1" class="active">P1: 0</span>
+      <span id="player2">P2: 0</span>
+      <button id="restartBtn">×</button>
+    </div>
+    <div class="doors">
+      <div class="door" data-door="0"></div>
+      <div class="door" data-door="1"></div>
+      <div class="door" data-door="2"></div>
+    </div>
+  </div>
+
+  <div id="modal" class="hidden">
+    <div class="modal-content">
+      <p id="modal-message">Placeholder message</p>
+      <button id="modal-action">Start a New Game</button>
+    </div>
+  </div>
+
+  <script defer src="./script.js"></script>
+</body>
+
+</html>
