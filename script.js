@@ -1,6 +1,6 @@
 // ==== CONFIGURATION ====
 const config = {
-  scoreToWin: 1000,
+  scoreToWin: 100,
   pointValues: [25, 50],
   diffucultyThreshold: 900,
   spookyEntities: ["ghost", "zombie", "skeleton", "vampire", "mummy"],
