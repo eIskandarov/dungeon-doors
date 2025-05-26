@@ -4,8 +4,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>Guess the Door</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/favicon/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon/favicon-16x16.png" />
+  <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./style.css" />
   <script type="module" src="./script.js"></script>
+  <script defer src="./loadWorker.js"></script>
 </head>
 
 <body>
@@ -13,10 +18,10 @@
   <div class="game">
     <div class="game__scoreboard">
       <div class="scoreboard__player scoreboard__player--p1 scoreboard__player--active">
-        P1: <span class="scoreboard__score">0</span>
+        Player 1: <span class="scoreboard__score">0</span>
       </div>
       <div class="scoreboard__player scoreboard__player--p2">
-        P2: <span class="scoreboard__score">0</span>
+        Player 2: <span class="scoreboard__score">0</span>
       </div>
     </div>
 
