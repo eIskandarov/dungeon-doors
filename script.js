@@ -2,7 +2,7 @@
 const config = {
   scoreToWin: 100,
   pointValues: [25, 50],
-  diffucultyThreshold: 900,
+  diffucultyThreshold: 25,
   spookyEntities: ["ghost", "zombie", "skeleton", "vampire", "mummy"],
   sounds: {
     doorOpen: [
@@ -70,8 +70,8 @@ class SpookyGame {
 
   constructor() {
     this.players = [
-      { name: "P1", score: 0 },
-      { name: "P2", score: 0 },
+      { name: "Player 1", score: 0 },
+      { name: "Player 2", score: 0 },
     ];
     this.activePlayerIndex = 0;
     this.isBusy = false;
@@ -97,8 +97,7 @@ class SpookyGame {
       this.showModal("Would you like to start a new game?"),
     );
 
-    this.updatePlayerScoreUI();
-    this.generateDoorResults();
+    this.startNewGame();
   }
 
   get activePlayer() {
@@ -151,7 +150,10 @@ class SpookyGame {
 
     // Early exit if player won
     if (this.activePlayer.score >= config.scoreToWin) {
-      this.showModal(`${this.activePlayer.name} won the game!`);
+      this.showModal(
+        `${this.activePlayer.name} won the game! Start a new game?`,
+      );
+      this.playSound(config.sounds.win);
       return;
     }
 
@@ -249,16 +251,11 @@ class SpookyGame {
   resetDoors() {
     this.state.isAnimating = false;
     this.doorEls.forEach((door) => {
-      door.textContent = "";
-      door.classList.remove(
-        this.doorStates.opened,
-        this.doorStates.animating,
-        this.doorStates.locked,
-        this.doorStates.monster,
-        this.doorStates.smallReward,
-        this.doorStates.bigReward,
-        ...config.spookyEntities.map((m) => `door--${m}`),
-      );
+      Object.values(this.doorStates).forEach((doorClass) => {
+        door.classList.remove(doorClass);
+      });
+
+      door.classList.remove(...config.spookyEntities.map((m) => `door--${m}`));
     });
   }
 
@@ -301,6 +298,7 @@ class SpookyGame {
   }
 
   startNewGame() {
+    this.playSound(config.sounds.gameStart);
     this.state.startNewGame = false;
     this.players.forEach((player) => (player.score = 0));
     this.activePlayerIndex = 0;

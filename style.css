@@ -28,6 +28,7 @@ html {
   display: flex;
   flex-direction: column;
   align-items: center;
+  touch-action: manipulation;
 }
 
 .game__scoreboard {
@@ -405,17 +406,17 @@ html {
 
 .game__modal {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
+  scale: 2;
+  touch-action: manipulation;
 }
 
 .modal {
+  max-width: 12rem;
   background: #222;
   padding: 20px 30px;
   border-radius: 10px;
