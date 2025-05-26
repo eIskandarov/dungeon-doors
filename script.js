@@ -232,6 +232,18 @@ class SpookyGame {
     this.doorEls.forEach((door, index) => {
       if (index !== activeIndex) {
         door.classList.add(this.doorStates.locked);
+
+        const { reward, label } = this.doorResults[index];
+        if (label) {
+          door.classList.add(
+            this.doorStates.monster,
+            `door--${label.toLowerCase()}`,
+          );
+        }
+
+        if (reward) {
+          door.classList.add(`${reward.toLowerCase()}`);
+        }
       }
     });
   }

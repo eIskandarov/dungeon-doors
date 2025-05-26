@@ -65,7 +65,7 @@ html {
 }
 
 .door--locked {
-  background: url("./assets/images/door-lock.png") 1rem / contain no-repeat;
+  /* background: url("./assets/images/door-lock.png") 1rem / contain no-repeat; */
 }
 
 .door--small-reward {
