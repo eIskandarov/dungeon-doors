@@ -5,18 +5,45 @@ const config = {
   diffucultyThreshold: 900,
   spookyEntities: ["ghost", "zombie", "skeleton", "vampire", "mummy"],
   sounds: {
-    doorOpen: "door-open.mp3",
-    smallReward: "small-reward.mp3",
-    bigReward: "big-reward.mp3",
-    spooky: "spooky.mp3",
-    ghost: "ghost.mp3",
-    zombie: "zombie.mp3",
-    skeleton: "skeleton.mp3",
-    vampire: "vampire.mp3",
-    mummy: "mummy.mp3",
+    doorOpen: [
+      "door-open-1.mp3",
+      "door-open-2.mp3",
+      "door-open-3.mp3",
+      "door-open-4.mp3",
+    ],
+    smallReward: [
+      "small-reward-1.mp3",
+      "small-reward-2.mp3",
+      "small-reward-3.mp3",
+    ],
+    bigReward: ["big-reward-1.mp3", "big-reward-2.mp3", "big-reward-3.mp3"],
+    spooky: ["spooky.mp3"],
+    ghost: ["ghost-1.mp3", "ghost-2.mp3", "ghost-3.mp3"],
+    zombie: ["zombie-1.mp3", "zombie-2.mp3", "zombie-3.mp3", "zombie-4.mp3"],
+    skeleton: ["skeleton-1.mp3", "skeleton-2.mp3", "skeleton-3.mp3"],
+    vampire: ["vampire-1.mp3", "vampire-2.mp3", "vampire-3.mp3"],
+    mummy: ["mummy-1.mp3", "mummy-2.mp3", "mummy-3.mp3"],
+    win: [
+      "win-1.mp3",
+      "win-2.mp3",
+      "win-3.mp3",
+      "win-4.mp3",
+      "win-5.mp3",
+      "win-6.mp3",
+      "win-7.mp3",
+    ],
+    gameStart: [
+      "game-start-1.mp3",
+      "game-start-2.mp3",
+      "game-start-3.mp3",
+      "game-start-4.mp3",
+      "game-start-5.mp3",
+      "game-start-6.mp3",
+      "game-start-7.mp3",
+    ],
   },
-  revealDelay: 1000, // ms before updating doors
-  flashDisplayDelay: 100, // ms before showing door result
+  revealDelay: 1500, // ms before updating doors
+  flashDisplayDelay: 800, // ms before showing door result
 };
 
 // ==== GAME CLASS ====
@@ -287,7 +314,8 @@ class SpookyGame {
     this.generateDoorResults();
   }
 
-  playSound(filename) {
+  playSound(soundArray) {
+    const filename = soundArray[Math.floor(Math.random() * soundArray.length)];
     const audio = new Audio(`./assets/sounds/${filename}`);
     audio.play().catch(() => {});
   }
