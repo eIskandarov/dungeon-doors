@@ -4,32 +4,50 @@
 <head>
   <meta charset="UTF-8" />
   <title>Guess the Door</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/favicon/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon/favicon-16x16.png" />
+  <link rel="manifest" href="./manifest.json" />
   <link rel="stylesheet" href="./style.css" />
+  <script type="module" src="./script.js"></script>
+  <script defer src="./loadWorker.js"></script>
 </head>
 
 <body>
-  <h1 class="visually-hidden">Dungeon game</h1>
-  <div id="game-container">
-    <div class="scoreboard">
-      <span id="player1" class="active">P1: 0</span>
-      <span id="player2">P2: 0</span>
-      <button id="restartBtn">×</button>
+  <h1 class="visually-hidden">Guess the Door</h1>
+  <div class="game">
+    <div class="game__scoreboard">
+      <div class="scoreboard__player scoreboard__player--p1 scoreboard__player--active">
+        Player 1: <span class="scoreboard__score">0</span>
+      </div>
+      <div class="scoreboard__player scoreboard__player--p2">
+        Player 2: <span class="scoreboard__score">0</span>
+      </div>
     </div>
-    <div class="doors">
-      <div class="door" data-door="0"></div>
-      <div class="door" data-door="1"></div>
-      <div class="door" data-door="2"></div>
+
+    <div class="game__doors">
+      <div class="door door--1"></div>
+      <div class="door door--2"></div>
+      <div class="door door--3"></div>
+    </div>
+
+    <button class="game__reset">✕</button>
+
+    <div class="game__modal hidden">
+      <div class="modal">
+        <p class="modal__message"></p>
+        <div class="modal__actions">
+          <button class="modal__button modal__button--confirm" type="button">
+            Yes
+          </button>
+          <button class="modal__button modal__button--cancel" type="button">
+            No
+          </button>
+        </div>
+      </div>
     </div>
   </div>
-
-  <div id="modal" class="hidden">
-    <div class="modal-content">
-      <p id="modal-message">Placeholder message</p>
-      <button id="modal-action">Start a New Game</button>
-    </div>
-  </div>
-
-  <script defer src="./script.js"></script>
+  <div class="game__overlay"></div>
 </body>
 
 </html>

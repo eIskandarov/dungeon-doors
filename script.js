@@ -1,121 +1,358 @@
-// ======= CONFIGURABLE VARIABLES =======
-const pointOptions = [50, 100];
-const spookyEntities = ["ghost", "zombie", "vampire", "skeleton"];
-const winScore = 1000;
+// ==== CONFIGURATION ====
+const config = {
+  scoreToWin: 1000,
+  pointValues: [25, 50],
+  diffucultyThreshold: 500,
+  spookyEntities: ["ghost", "zombie", "skeleton", "vampire", "mummy"],
+  sounds: {
+    doorOpen: [
+      "door-open-1.mp3",
+      "door-open-2.mp3",
+      "door-open-3.mp3",
+      "door-open-4.mp3",
+    ],
+    smallReward: [
+      "small-reward-1.mp3",
+      "small-reward-2.mp3",
+      "small-reward-3.mp3",
+    ],
+    bigReward: ["big-reward-1.mp3", "big-reward-2.mp3", "big-reward-3.mp3"],
+    spooky: ["spooky.mp3"],
+    ghost: ["ghost-1.mp3", "ghost-2.mp3", "ghost-3.mp3"],
+    zombie: ["zombie-1.mp3", "zombie-2.mp3", "zombie-3.mp3", "zombie-4.mp3"],
+    skeleton: ["skeleton-1.mp3", "skeleton-2.mp3", "skeleton-3.mp3"],
+    vampire: ["vampire-1.mp3", "vampire-2.mp3", "vampire-3.mp3"],
+    mummy: ["mummy-1.mp3", "mummy-2.mp3", "mummy-3.mp3"],
+    win: [
+      "win-1.mp3",
+      "win-2.mp3",
+      "win-3.mp3",
+      "win-4.mp3",
+      "win-5.mp3",
+      "win-6.mp3",
+      "win-7.mp3",
+    ],
+    gameStart: [
+      "game-start-1.mp3",
+      "game-start-2.mp3",
+      "game-start-3.mp3",
+      "game-start-4.mp3",
+      "game-start-5.mp3",
+      "game-start-6.mp3",
+      "game-start-7.mp3",
+    ],
+  },
+  revealDelay: 1500, // ms before updating doors
+  flashDisplayDelay: 800, // ms before showing door result
+};
 
-// ======= GAME CLASSES & STATE =======
-class Player {
-  constructor(name) {
-    this.name = name;
-    this.score = 0;
-  }
+// ==== GAME CLASS ====
+class SpookyGame {
+  modalButtonText = {
+    yes: "Yes",
+    no: "No",
+    go: "Go",
+  };
 
-  addPoints(points) {
-    this.score += points;
-  }
-}
+  doorStates = {
+    opened: "door--opened",
+    animating: "door--animating",
+    locked: "door--locked",
+    monster: "door--monster",
+    smallReward: "door--small-reward",
+    bigReward: "door--big-reward",
+  };
 
-class Game {
+  state = {
+    startNewGame: false,
+    isAnimating: false,
+  };
+
   constructor() {
-    this.players = [new Player("P1"), new Player("P2")];
-    this.currentPlayerIndex = 0;
-    this.doorOutcomes = [];
-    this.init();
+    this.players = [
+      { name: "Player 1", score: 0 },
+      { name: "Player 2", score: 0 },
+    ];
+    this.activePlayerIndex = 0;
+    this.isBusy = false;
+
+    this.scoreEls = document.querySelectorAll(".scoreboard__score");
+    this.playerEls = document.querySelectorAll(".scoreboard__player");
+    this.doorEls = document.querySelectorAll(".door");
+    this.modal = document.querySelector(".game__modal");
+    this.modalMessage = document.querySelector(".modal__message");
+    this.modalYes = document.querySelector(".modal__button--confirm");
+    this.modalNo = document.querySelector(".modal__button--cancel");
+    this.resetBtn = document.querySelector(".game__reset");
+    this.gameContainer = document.querySelector(".game");
+
+    this.doorResults = [];
+
+    this.doorEls.forEach((door, index) =>
+      door.addEventListener("click", () => this.handleDoorClick(index)),
+    );
+    this.modalYes.addEventListener("click", () => this.handleYesClick());
+    this.modalNo.addEventListener("click", () => this.hideModal());
+    this.resetBtn.addEventListener("click", () =>
+      this.showModal("Would you like to start a new game?"),
+    );
+
+    this.startNewGame();
   }
 
-  init() {
-    this.assignRandomOutcomes();
-    this.updateScores();
-    this.setActivePlayer();
-    this.attachEventListeners();
+  get activePlayer() {
+    return this.players[this.activePlayerIndex];
   }
 
-  assignRandomOutcomes() {
-    this.doorOutcomes = Array.from({ length: 3 }, () => {
-      const isSpooky = Math.random() < 0.33;
-      return isSpooky
-        ? spookyEntities[Math.floor(Math.random() * spookyEntities.length)]
-        : pointOptions[Math.floor(Math.random() * pointOptions.length)];
-    });
-  }
+  handleDoorClick(index) {
+    if (this.state.isAnimating) return;
 
-  updateScores() {
-    document.getElementById("player1").textContent =
-      `P1: ${this.players[0].score}`;
-    document.getElementById("player2").textContent =
-      `P2: ${this.players[1].score}`;
-  }
+    if (this.isBusy) return;
+    this.isBusy = true;
+    const door = this.doorEls[index];
 
-  setActivePlayer() {
-    document.getElementById("player1").classList.remove("active");
-    document.getElementById("player2").classList.remove("active");
-    document
-      .getElementById(`player${this.currentPlayerIndex + 1}`)
-      .classList.add("active");
-  }
+    this.lockOtherDoors(index);
+    this.animateDoorOpen(door);
 
-  nextTurn() {
-    this.currentPlayerIndex = 1 - this.currentPlayerIndex;
-    this.setActivePlayer();
-  }
-
-  openDoor(doorIndex) {
-    const result = this.doorOutcomes[doorIndex];
-
-    // Reveal logic (add delay or animation here)
     setTimeout(() => {
-      if (typeof result === "number") {
-        this.players[this.currentPlayerIndex].addPoints(result);
-        this.updateScores();
+      this.revealResult(door, index);
+    }, config.flashDisplayDelay);
+  }
 
-        if (this.players[this.currentPlayerIndex].score >= winScore) {
-          this.showModal(
-            `${this.players[this.currentPlayerIndex].name} won the game!`,
-          );
-          return;
-        }
+  revealResult(door, index) {
+    const result = this.doorResults[index];
+    const { type } = result;
 
-        this.assignRandomOutcomes(); // refresh doors
-      } else {
-        // Spooky! Next player's turn
-        this.nextTurn();
+    // Guard: If no result, exit early
+    if (!result) return;
+
+    // Strategy pattern: Dispatch to the right handler
+    const handlers = {
+      points: () => this.handlePointsReward(door, result),
+      spooky: () => this.handleSpookyEvent(door, result),
+    };
+
+    // Execute the handler (or default if type is invalid)
+    const handler =
+      handlers[type] || (() => console.error("Unknown result type"));
+    handler();
+
+    this.isBusy = false; // Always mark as not busy
+  }
+
+  // --- Extracted Functions ---
+  handlePointsReward(door, result) {
+    const { reward, value, sound } = result;
+    door.classList.add(`${reward.toLowerCase()}`);
+    this.activePlayer.score += value;
+    this.updatePlayerScoreUI();
+    this.playSound(sound);
+
+    // Early exit if player won
+    if (this.activePlayer.score >= config.scoreToWin) {
+      this.showModal(
+        `${this.activePlayer.name} won the game! Start a new game?`,
+      );
+      this.playSound(config.sounds.win);
+      return;
+    }
+
+    // Otherwise, reset doors
+    setTimeout(() => {
+      this.resetDoors();
+      this.generateDoorResults();
+    }, config.revealDelay);
+  }
+
+  handleSpookyEvent(door, result) {
+    const { label, sound } = result;
+    door.classList.add(this.doorStates.monster, `door--${label.toLowerCase()}`);
+    this.playSound(sound);
+
+    setTimeout(() => {
+      this.switchPlayer();
+      this.showModal(`${this.activePlayer.name}'s turn`, true);
+    }, 1000);
+  }
+
+  generateDoorResults() {
+    const roomSetup = this.calculateRandomDoors();
+    const randomizedSetup = roomSetup.toSorted((_) => Math.random() - 0.5);
+
+    this.doorResults = roomSetup.map((_, index) =>
+      this.initDoorResult(randomizedSetup[index]),
+    );
+  }
+
+  initDoorResult(roomType) {
+    switch (roomType) {
+      case this.doorStates.smallReward: {
+        return {
+          type: "points",
+          value: config.pointValues[0],
+          reward: this.doorStates.smallReward,
+          sound: config.sounds.smallReward,
+        };
       }
-    }, 1000); // simulate delay
+
+      case this.doorStates.bigReward: {
+        return {
+          type: "points",
+          value: config.pointValues[1],
+          reward: this.doorStates.bigReward,
+          sound: config.sounds.bigReward,
+        };
+      }
+
+      case this.doorStates.monster: {
+        const spookyEntities = config.spookyEntities;
+        const spooky =
+          spookyEntities[Math.floor(Math.random() * spookyEntities.length)];
+
+        return {
+          type: "spooky",
+          label: spooky,
+          sound: config.sounds[spooky],
+        };
+      }
+
+      default: {
+        return {};
+      }
+    }
   }
 
-  attachEventListeners() {
-    document.querySelectorAll(".door").forEach((door) => {
-      door.addEventListener("click", () => {
-        const index = parseInt(door.dataset.door);
-        this.openDoor(index);
+  calculateRandomDoors() {
+    const isDifficult = this.activePlayer.score >= config.diffucultyThreshold;
+
+    const PROB_POINTS_BIG = isDifficult ? 0.7 : 0.5; // 0.7 - 0.4 = 30% chance
+    let minMonstersCount = isDifficult ? (Math.random() >= 0.7 ? 2 : 1) : 1;
+
+    return Array.from({ length: this.doorEls.length }, (_) => {
+      if (minMonstersCount) {
+        minMonstersCount--;
+        return this.doorStates.monster;
+      }
+
+      if (Math.random() >= PROB_POINTS_BIG) {
+        return this.doorStates.bigReward;
+      }
+
+      return this.doorStates.smallReward;
+    });
+  }
+
+  animateDoorOpen(door) {
+    this.state.isAnimating = true;
+    door.classList.add(this.doorStates.animating);
+    this.playSound(config.sounds.doorOpen);
+  }
+
+  lockOtherDoors(activeIndex) {
+    this.doorEls.forEach((door, index) => {
+      if (index !== activeIndex) {
+        door.classList.add(this.doorStates.locked);
+
+        setTimeout(() => {
+          const { reward, label } = this.doorResults[index];
+          if (label) {
+            door.classList.add(
+              this.doorStates.monster,
+              `door--${label.toLowerCase()}`,
+            );
+          }
+
+          if (reward) {
+            door.classList.add(`${reward.toLowerCase()}`);
+          }
+        }, config.revealDelay);
+      }
+    });
+  }
+
+  unlockAllDoors() {
+    this.doorEls.forEach((door) =>
+      door.classList.remove(this.doorStates.locked),
+    );
+    this.isBusy = false;
+  }
+
+  switchPlayer() {
+    this.activePlayerIndex = (this.activePlayerIndex + 1) % 2;
+    this.updatePlayerScoreUI();
+  }
+
+  resetDoors() {
+    this.state.isAnimating = false;
+    this.doorEls.forEach((door) => {
+      Object.values(this.doorStates).forEach((doorClass) => {
+        door.classList.remove(doorClass);
       });
-    });
 
-    document.getElementById("restartBtn").addEventListener("click", () => {
-      this.showModal("Would you like to start a new game?", true);
-    });
-
-    document.getElementById("modal-action").addEventListener("click", () => {
-      this.resetGame();
+      door.classList.remove(...config.spookyEntities.map((m) => `door--${m}`));
     });
   }
 
-  showModal(message, confirmRestart = false) {
-    document.getElementById("modal-message").textContent = message;
-    document.getElementById("modal-action").textContent = confirmRestart
-      ? "Yes"
-      : "Start a New Game";
-    document.getElementById("modal").classList.remove("hidden");
+  updatePlayerScoreUI() {
+    this.players.forEach((player, index) => {
+      this.scoreEls[index].textContent = player.score;
+      this.playerEls[index].classList.toggle(
+        "scoreboard__player--active",
+        index === this.activePlayerIndex,
+      );
+    });
   }
 
-  resetGame() {
+  showModal(message, isTurn = false) {
+    this.modalMessage.textContent = message;
+    this.modal.classList.remove("hidden");
+
+    if (isTurn) {
+      this.modalYes.textContent = "Go";
+      this.modalNo.classList.add("hidden");
+    } else {
+      this.modalYes.textContent = "Yes";
+      this.state.startNewGame = true;
+      this.modalNo.classList.remove("hidden");
+    }
+  }
+
+  hideModal() {
+    this.modal.classList.add("hidden");
+    this.unlockAllDoors();
+  }
+
+  handleYesClick() {
+    if (this.state.startNewGame) {
+      this.startNewGame();
+      return;
+    }
+
+    this.updateLevelUI();
+  }
+
+  startNewGame() {
+    this.playSound(config.sounds.gameStart);
+    this.state.startNewGame = false;
     this.players.forEach((player) => (player.score = 0));
-    this.currentPlayerIndex = 0;
-    this.assignRandomOutcomes();
-    this.updateScores();
-    this.setActivePlayer();
-    document.getElementById("modal").classList.add("hidden");
+    this.activePlayerIndex = 0;
+    this.updateLevelUI();
+  }
+
+  updateLevelUI() {
+    this.resetDoors();
+    this.updatePlayerScoreUI();
+    this.hideModal();
+    this.generateDoorResults();
+  }
+
+  playSound(soundArray) {
+    const filename = soundArray[Math.floor(Math.random() * soundArray.length)];
+    const audio = new Audio(`./assets/sounds/${filename}`);
+    audio.play().catch(() => {});
   }
 }
 
-const game = new Game();
+window.addEventListener("DOMContentLoaded", () => {
+  new SpookyGame();
+});
