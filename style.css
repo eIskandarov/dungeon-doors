@@ -64,7 +64,7 @@ html {
 }
 
 .door--locked {
-  background: url("./assets/images/door-lock.png") center / contain no-repeat;
+  background: url("./assets/images/door-lock.png") 1rem / contain no-repeat;
 }
 
 .door--small-reward {
@@ -86,19 +86,19 @@ html {
 
 /* Monster-specific classes */
 .door--ghost {
-  background-image: url("./assets/images/ghost.png");
+  background: url("./assets/images/ghost.png") 1rem / contain no-repeat;
 }
 
 .door--mummy {
-  background-image: url("./assets/images/mummy.png");
+  background: url("./assets/images/mummy.png") 1rem / contain no-repeat;
 }
 
 .door--zombie {
-  background-image: url("./assets/images/zombie.png");
+  background: url("./assets/images/zombie.png") 1rem / contain no-repeat;
 }
 
 .door--skeleton {
-  background-image: url("./assets/images/skeleton.png");
+  background: url("./assets/images/skeleton.png") 1rem / contain no-repeat;
 }
 
 .door--vampire {
@@ -240,8 +240,7 @@ html {
       15.78% 12.19%,
       11.36% 18.56%,
       9.76% 28.48%,
-      10.07% 100.09%,
-      58.28% 99.95%
+      10.07% 100.09%
     );
   }
 
@@ -281,18 +280,18 @@ html {
     width: 22%;
     height: 67%;
     clip-path: polygon(
-      97.83% 98.94%,
-      97.97% 51.75%,
-      97.65% 30.29%,
-      96.69% 15.46%,
-      90.09% 8.28%,
-      80.17% 3.9%,
-      70.59% 1.98%,
-      56.77% 0.75%,
-      42.93% 1.47%,
-      30.21% 4.27%,
-      20.19% 9.59%,
-      13.76% 17.38%,
+      97.52% 98.44%,
+      97.34% 53.76%,
+      96.71% 30.79%,
+      95.75% 17.47%,
+      90.09% 12.96%,
+      81.74% 9.08%,
+      70.59% 6.83%,
+      56.77% 5.43%,
+      41.99% 6.48%,
+      32.09% 8.62%,
+      22.7% 12.93%,
+      14.7% 17.71%,
       13.59% 28.06%,
       14.3% 99.3%,
       56.57% 99.71%
@@ -300,50 +299,45 @@ html {
   }
 
   .door--2 {
-    top: 16%;
+    top: 17%;
     left: 33%;
     width: 23%;
-    height: 67%;
+    height: 65%;
     clip-path: polygon(
-      101.03% 100.03%,
-      100.91% 55.14%,
-      101.07% 39.79%,
-      100.78% 25.24%,
-      99.09% 16.33%,
-      94.25% 11.45%,
-      87.76% 7.05%,
-      78.5% 2.93%,
-      66.33% 1.08%,
-      43.31% 1.19%,
-      27.65% 5.12%,
-      15.78% 12.19%,
-      11.36% 18.56%,
-      9.76% 28.48%,
-      10.07% 100.09%,
+      99.83% 99.69%,
+      99.41% 54.8%,
+      99.27% 38.58%,
+      99.28% 26.45%,
+      96.99% 19.09%,
+      93.65% 13.86%,
+      86.86% 9.12%,
+      77.3% 4.65%,
+      66.63% 2.46%,
+      56.1% 1.41%,
+      44.51% 2.23%,
+      34.54% 4.95%,
+      27.46% 7.74%,
+      19.67% 12.19%,
+      14.06% 19.08%,
+      13.06% 30.38%,
+      14.86% 99.92%,
       58.28% 99.95%
     );
   }
 
   .door--3 {
-    top: 16%;
+    top: 18%;
     left: 70%;
     width: 22%;
-    height: 67%;
+    height: 64%;
     clip-path: polygon(
-      97.83% 98.94%,
-      97.08% 54.74%,
-      96.54% 36.87%,
-      95.8% 23.71%,
-      89.43% 18.09%,
-      79.06% 11.91%,
-      67.93% 6.05%,
-      54.33% -0.57%,
-      42.05% 5.41%,
-      32.43% 10.25%,
-      23.96% 15.21%,
-      14.43% 22.76%,
-      14.03% 54.85%,
-      14.3% 99.3%,
+      90.94% 98.94%,
+      90.48% 24.07%,
+      73.88% 12.69%,
+      51.81% 1.18%,
+      31.8% 11.52%,
+      15.06% 23.46%,
+      15.87% 99.47%,
       56.57% 99.23%
     );
   }
