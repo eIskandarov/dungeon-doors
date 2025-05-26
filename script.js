@@ -1,8 +1,8 @@
 // ==== CONFIGURATION ====
 const config = {
-  scoreToWin: 100,
+  scoreToWin: 1000,
   pointValues: [25, 50],
-  diffucultyThreshold: 25,
+  diffucultyThreshold: 500,
   spookyEntities: ["ghost", "zombie", "skeleton", "vampire", "mummy"],
   sounds: {
     doorOpen: [
@@ -176,50 +176,70 @@ class SpookyGame {
   }
 
   generateDoorResults() {
-    this.doorResults = Array.from({ length: this.doorEls.length }, () =>
-      this.randomDoorResult(),
+    const roomSetup = this.calculateRandomDoors();
+    const randomizedSetup = roomSetup.toSorted((_) => Math.random() - 0.5);
+
+    this.doorResults = roomSetup.map((_, index) =>
+      this.initDoorResult(randomizedSetup[index]),
     );
   }
 
-  randomDoorResult() {
-    let PROB_POINTS_SMALL = 0.4;
-    let PROB_POINTS_BIG = 0.7; // 0.7 - 0.4 = 30% chance
+  initDoorResult(roomType) {
+    switch (roomType) {
+      case this.doorStates.smallReward: {
+        return {
+          type: "points",
+          value: config.pointValues[0],
+          reward: this.doorStates.smallReward,
+          sound: config.sounds.smallReward,
+        };
+      }
 
-    if (this.activePlayer.score >= config.diffucultyThreshold) {
-      PROB_POINTS_SMALL = 0.2;
-      PROB_POINTS_BIG = 0.4; // 0.7 - 0.4 = 30% chance
+      case this.doorStates.bigReward: {
+        return {
+          type: "points",
+          value: config.pointValues[1],
+          reward: this.doorStates.bigReward,
+          sound: config.sounds.bigReward,
+        };
+      }
+
+      case this.doorStates.monster: {
+        const spookyEntities = config.spookyEntities;
+        const spooky =
+          spookyEntities[Math.floor(Math.random() * spookyEntities.length)];
+
+        return {
+          type: "spooky",
+          label: spooky,
+          sound: config.sounds[spooky],
+        };
+      }
+
+      default: {
+        return {};
+      }
     }
+  }
 
-    const rand = Math.random();
+  calculateRandomDoors() {
+    const isDifficult = this.activePlayer.score >= config.diffucultyThreshold;
 
-    if (rand < PROB_POINTS_SMALL) {
-      return {
-        type: "points",
-        value: config.pointValues[0],
-        reward: this.doorStates.smallReward,
-        sound: config.sounds.smallReward,
-      };
-    }
+    const PROB_POINTS_BIG = isDifficult ? 0.7 : 0.5; // 0.7 - 0.4 = 30% chance
+    let minMonstersCount = isDifficult ? (Math.random() >= 0.7 ? 2 : 1) : 1;
 
-    if (rand < PROB_POINTS_BIG) {
-      return {
-        type: "points",
-        value: config.pointValues[1],
-        reward: this.doorStates.bigReward,
-        sound: config.sounds.bigReward,
-      };
-    }
+    return Array.from({ length: this.doorEls.length }, (_) => {
+      if (minMonstersCount) {
+        minMonstersCount--;
+        return this.doorStates.monster;
+      }
 
-    // Only spooky remains (~30% chance)
-    const spookyEntities = config.spookyEntities;
-    const spooky =
-      spookyEntities[Math.floor(Math.random() * spookyEntities.length)];
+      if (Math.random() >= PROB_POINTS_BIG) {
+        return this.doorStates.bigReward;
+      }
 
-    return {
-      type: "spooky",
-      label: spooky,
-      sound: config.sounds[spooky],
-    };
+      return this.doorStates.smallReward;
+    });
   }
 
   animateDoorOpen(door) {
@@ -233,17 +253,19 @@ class SpookyGame {
       if (index !== activeIndex) {
         door.classList.add(this.doorStates.locked);
 
-        const { reward, label } = this.doorResults[index];
-        if (label) {
-          door.classList.add(
-            this.doorStates.monster,
-            `door--${label.toLowerCase()}`,
-          );
-        }
+        setTimeout(() => {
+          const { reward, label } = this.doorResults[index];
+          if (label) {
+            door.classList.add(
+              this.doorStates.monster,
+              `door--${label.toLowerCase()}`,
+            );
+          }
 
-        if (reward) {
-          door.classList.add(`${reward.toLowerCase()}`);
-        }
+          if (reward) {
+            door.classList.add(`${reward.toLowerCase()}`);
+          }
+        }, config.revealDelay);
       }
     });
   }
