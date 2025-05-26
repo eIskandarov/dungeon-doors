@@ -68,7 +68,17 @@ html {
 }
 
 .door--locked {
-  background-color: black;
+  background: url("./assets/images/door-lock.png") center / contain no-repeat;
+}
+
+.door--small-reward {
+  background: url("./assets/images/door--small-reward.png") center / contain
+    no-repeat;
+}
+
+.door--big-reward {
+  background: url("./assets/images/door--big-reward.png") center / contain
+    no-repeat;
 }
 
 .door--monster {
@@ -80,19 +90,23 @@ html {
 
 /* Monster-specific classes */
 .door--ghost {
-  background-image: url("./assets/ghost.png");
+  background-image: url("./assets/images/ghost.png");
+}
+
+.door--mummy {
+  background-image: url("./assets/images/mummy.png");
 }
 
 .door--zombie {
-  background-image: url("./assets/zombie.png");
+  background-image: url("./assets/images/zombie.png");
 }
 
 .door--skeleton {
-  background-image: url("./assets/skeleton.png");
+  background-image: url("./assets/images/skeleton.png");
 }
 
 .door--vampire {
-  background-image: url("./assets/vampire.png");
+  background-image: url("./assets/images/vampire.png");
 }
 
 /* Optional: Fade to black effect */
