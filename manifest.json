@@ -3,8 +3,8 @@
   "short_name": "Dungeon Doors",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "rgba(220, 174, 185)",
-  "theme_color": "#c7365f",
+  "background_color": "#0e101c",
+  "theme_color": "#1e2028",
   "icons": [
     {
       "src": "./assets/favicon/android-chrome-192x192.png",
